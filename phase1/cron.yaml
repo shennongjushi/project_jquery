@@ -1,0 +1,5 @@
+cron:
+  - description: trending job
+    url: /count
+    schedule: every 5 minutes
+

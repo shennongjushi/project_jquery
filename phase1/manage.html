@@ -1,0 +1,153 @@
+<html>
+<head>
+   <table>
+     <tr>
+       <td width=779 colspan=8 valign=top>
+         <p style="font-family:Calibri;color:#92D050;font-size:60.0pt"><b>Connex.us</b></p>
+       </td>
+     </tr>
+     <tr>
+       <td width=130 valign=top>
+         <p><a href="/manage" style="font-family:Calibri;color:#D0CECE;font-size:16.0pt;text-decoration:none;">Manage</a></p>
+       </td>
+       <td width=130 colspan=2 valign=top>
+         <p><a href="/create" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Create</a></p>
+       </td>
+       <td width=130 valign=top>
+         <p><a href="/viewallstreams" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">View</a></p>
+       </td>
+       <td width=130 valign=top>
+         <p><a href="/search" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Search</a></p>
+       </td>
+       <td width=130 colspan=2 valign=top>
+         <p><a href="/trending" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Trending</a></p>
+       </td>
+       <td width=130 valign=top>
+         <p><a href="/social" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Social</a></p>
+       </td>
+     </tr>
+   </table>
+</head>
+<body>
+   </br>
+      <table>
+         <tr>
+            <td width=130 valign=top>
+            <p style="font-family:Calibri;color:#FFC000;font-size:14.0pt"><i>Hello,{{user.nickname()}}</i></p>
+            </td>
+            <td></td>
+            <td><a href="{{url|safe}}">{{url_linktext}}</a></td>
+         </tr>
+       </table>
+    </br>
+    <form action="/delete_my" enctype = "multipart/form-data" method ="post">
+       <table>
+          <tr>
+            <td width=779 colspan=8 valign=top>
+            <p style="font-family:Calibri;color:black;font-size:18.0pt"><b>Stream I own</b></p>
+            </td>
+          </tr>
+          <tr></tr>
+          <tr></tr>
+          <tr>
+            <td width=195 colspan=2 valign=top>
+            <p style="font-family:Calibri;color:black;font-size:12.0pt">Name</p>
+            </td>
+            <td width=195 colspan=2 valign=top>
+            <p style="font-family:Calibri;color:black;font-size:12.0pt">Last New Picture</p>
+            </td>
+            <td width=195 colspan=2 valign=top>
+            <p style="font-family:Calibri;color:black;font-size:12.0pt">Number of Pictures</p>
+            </td>
+            <td width=195 colspan=2 valign=top>
+            <p style="font-family:Calibri;color:black;font-size:12.0pt">Views</p>
+            </td>
+            <td width=195 colspan=2 valign=top>
+            <p style="font-family:Calibri;color:black;font-size:12.0pt">Delete</p>
+            </td>
+          </tr>
+        {% if my_stream %}
+        {% for stream in my_stream %}
+          <tr>
+             <td width=195 colspan=2 valign=top>
+              <p style="font-family:Calibri;color:black;font-size:12.0pt"><a href="/viewastream?stream_id={{stream.key.id()}}&stream_name={{stream.name}}">{{stream.name}}</a></p>
+              </td>
+              <td width=195 colspan=2 valign=top>
+                {% if stream.num_pic %}
+                <p style="font-family:Calibri;color:black;font-size:12.0pt">{{stream.last_date.date()}}</p>
+                {% else %}
+                <p style="font-family:Calibri;color:black;font-size:12.0pt">{{stream.date.date()}}</p>
+                 {% endif %}
+              </td>
+              <td width=195 colspan=2 valign=top>
+                <p style="font-family:Calibri;color:black;font-size:12.0pt">{{stream.num_pic}}</p>
+              </td>
+              <td width=195 colspan=2 valign=top>
+                <p style="font-family:Calibri;color:black;font-size:12.0pt">{{stream.viewers}}</p>
+              </td>
+              <td width=195 colspan=2 valign=top>
+                <p style="font-family:Calibri;color:black;font-size:12.0pt"><input type="checkbox" name="del" value ="{{stream.key.id()}}"></p>
+              </td>
+           </tr>
+               {% endfor %}
+          {% endif %}
+           <tr>
+           <td width=195 colspan=2 valign=top>
+           <input type ="submit" value="Delete Checked">
+           </tr>
+         </table>
+       </form>
+     </br>
+
+     <form action="/delete_subscribe" enctype = "multipart/form-data" method ="post">
+               <table>
+               <tr>
+               <td width=779 colspan=8 valign=top>
+               <p style="font-family:Calibri;color:black;font-size:18.0pt"><b>Stream I subscribe to</b></p>
+               </td>
+               </tr>
+               <tr></tr>
+               <tr></tr>
+               <tr>
+               <td width=195 colspan=2 valign=top>
+               <p style="font-family:Calibri;color:black;font-size:12.0pt">Name</p>
+               </td>
+               <td width=195 colspan=2 valign=top>
+               <p style="font-family:Calibri;color:black;font-size:12.0pt">Last New Picture</p>
+               </td>
+               <td width=195 colspan=2 valign=top>
+               <p style="font-family:Calibri;color:black;font-size:12.0pt">Number of Pictures</p>
+               </td>
+               <td width=195 colspan=2 valign=top>
+               <p style="font-family:Calibri;color:black;font-size:12.0pt">Views</p>
+               </td>
+               <td width=195 colspan=2 valign=top>
+               <p style="font-family:Calibri;color:black;font-size:12.0pt">Unsubscribe</p>
+               </td>
+               </tr>
+       {% for stream in subscribe_stream %}
+                   <tr>
+                    <td width=195 colspan=2 valign=top>
+                    <p style="font-family:Calibri;color:black;font-size:12.0pt"><a href="/viewastream?stream_id={{stream.key.id()}}&stream_name={{stream.name}}">{{stream.name}}</a></p>
+                    </td>
+                    <td width=195 colspan=2 valign=top>
+                    {% if stream.num_pic %}
+                    <p style="font-family:Calibri;color:black;font-size:12.0pt">{{stream.last_date.date()}}</p>
+                    {% else %}
+                    <p style="font-family:Calibri;color:black;font-size:12.0pt">{{stream.date.date()}}</p>
+                    {% endif %}
+                    </td>
+                    <td width=195 colspan=2 valign=top>
+                    <p style="font-family:Calibri;color:black;font-size:12.0pt">{{stream.num_pic}}</p>
+                    </td>
+                    <td width=195 colspan=2 valign=top>
+                    <p style="font-family:Calibri;color:black;font-size:12.0pt">{{stream.viewers}}</p>
+                    </td>
+                    <td width=195 colspan=2 valign=top>
+                    <p style="font-family:Calibri;color:black;font-size:12.0pt"><input type="checkbox" name="del" value ="{{stream.key.id()}}"></p>
+                    </td>
+                   </tr>
+          
+       {% endfor %}
+</body>
+</html>
