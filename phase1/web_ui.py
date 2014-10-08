@@ -85,20 +85,26 @@ class Login(webapp2.RequestHandler):
         #    self.redirect('/manage')
         #else:
         #    self.redirect(users.create_login_url('/'))
-        self.response.write("""\
-        <html>
-        <head><title>Connex-us</title>
-        </head>
-        <body>
-        <p style="font-family:Calibri;color:black;font-size:50.0pt"><b>Welcome to Connexus</b></p>
-        <p style="font-family:Calibri;color:black;font-size:40.0pt">Share the world!</p>
-        <a href ="%s">
-        <image src ="https://developers.google.com/accounts/images/sign-in-with-google.png">
-        </a>
-        </body>
-        </html> 
-        """
-        %(users.create_login_url('/manage')))
+        #self.response.write("""\
+        #<html>
+        #<head><title>Connex-us</title>
+        #</head>
+        #<body>
+        #<p style="font-family:Calibri;color:black;font-size:50.0pt"><b>Welcome to Connexus</b></p>
+        #<p style="font-family:Calibri;color:black;font-size:40.0pt">Share the world!</p>
+        #<a href ="%s">
+        #<image src ="https://developers.google.com/accounts/images/sign-in-with-google.png">
+        #</a>
+        #</body>
+        #</html> 
+        #"""
+        #%(users.create_login_url('/manage')))
+        url=users.create_login_url('/manage')
+        template_value = {
+            'url':url
+        }
+        template = JINJA_ENVIRONMENT.get_template('login.html')
+        self.response.write(template.render(template_value))
 
 class Error(webapp2.RequestHandler):
   def get(self):
@@ -219,6 +225,8 @@ class Manage(webapp2.RequestHandler):
         user = users.get_current_user()
         url = ''
         url_linktext = ''
+        my_stream_entity = list()
+        subscribe_stream_entity = list()
         if not user:
            self.redirect(users.create_login_url('/manage'))
         else:
@@ -279,8 +287,6 @@ class Manage(webapp2.RequestHandler):
                data = json.loads(responses.read())
                my_stream = data['my_stream']
                subscribe_stream = data['subscribe_stream']
-               my_stream_entity = list()
-               subscribe_stream_entity = list()
                for stream in my_stream:
                    my_stream_entity.append(ndb.Key(Stream,long(stream)).get())
                #if my_stream_entity:
