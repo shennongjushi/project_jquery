@@ -143,36 +143,42 @@ class Error(webapp2.RequestHandler):
 #############Create##############
 class Create(webapp2.RequestHandler):
     def get(self):
-        grey = '#D0CECE'
-        blue = '#2E75B6'
-        self.response.write(HEAD_TEMPLATE %(blue,grey,blue,blue,blue,blue))
-        self.response.write("""\
-      	<body>
-        </br>
-        <form enctype = "multipart/form-data" method = "post">
-        <table>
-        <tr>
-        <td>
-        <div stype="font-family:Calibri;color:black;font-size:20.0pt"><label><b>Name Your Stream</b></label></div>
-        <div><textarea name="stream_name" rows="2" cols="60"></textarea></div>
-        <div stype="font-family:Calibri;color:black;font-size:20.0pt"><label><b>Add subscribers</b></label></div>
-        <div><textarea name="email" rows="4" cols="60" placeholder="Seperate emails by ','"></textarea></div>
-        <div><textarea name="message" rows="4" cols="60" placeholder="Optional message for invite"></textarea></div>
-        </td>
-        <td>
-        <div stype="font-family:Calibri;color:black;font-size:20.0pt"><label><b>Tag Your Stream</b></label></div>
-        <div><textarea name="stream_tag" rows="4" cols="60" placeholder="#LucknowChristianCollege,$1985, #AdnansFriends,#FB:schools.india.LCC"></textarea></div>
-        <div></br><div>
-        <div><label><b>URL to cover image(Can be empty)</b></label></div>
-        <div><textarea name="cover_url" rows="3" cols="60" placeholder="http://flickr.com/tiger-image.png"></textarea></div>
-        <div><input type="submit" values="Create Submit"></div>
-        </td>
-        </tr>
-        <table>
-        </form>
-        </body>
-        </html>
-""")
+      user = users.get_current_user()
+      if not user:
+        self.redirect(users.create_login_url('/manage'))
+      template_value = dict()
+      template = JINJA_ENVIRONMENT.get_template('create.html')
+      self.response.write(template.render(template_value))
+        #grey = '#D0CECE'
+        #blue = '#2E75B6'
+        #self.response.write(HEAD_TEMPLATE %(blue,grey,blue,blue,blue,blue))
+#        self.response.write("""\
+#      	<body>
+#        </br>
+#        <form enctype = "multipart/form-data" method = "post">
+#        <table>
+#        <tr>
+#        <td>
+#        <div stype="font-family:Calibri;color:black;font-size:20.0pt"><label><b>Name Your Stream</b></label></div>
+#        <div><textarea name="stream_name" rows="2" cols="60"></textarea></div>
+#        <div stype="font-family:Calibri;color:black;font-size:20.0pt"><label><b>Add subscribers</b></label></div>
+#        <div><textarea name="email" rows="4" cols="60" placeholder="Seperate emails by ','"></textarea></div>
+#        <div><textarea name="message" rows="4" cols="60" placeholder="Optional message for invite"></textarea></div>
+#        </td>
+#        <td>
+#        <div stype="font-family:Calibri;color:black;font-size:20.0pt"><label><b>Tag Your Stream</b></label></div>
+#        <div><textarea name="stream_tag" rows="4" cols="60" placeholder="#LucknowChristianCollege,$1985, #AdnansFriends,#FB:schools.india.LCC"></textarea></div>
+#        <div></br><div>
+#        <div><label><b>URL to cover image(Can be empty)</b></label></div>
+#        <div><textarea name="cover_url" rows="3" cols="60" placeholder="http://flickr.com/tiger-image.png"></textarea></div>
+#        <div><input type="submit" values="Create Submit"></div>
+#        </td>
+#        </tr>
+#        <table>
+#        </form>
+#        </body>
+#        </html>
+#""")
     def post(self):
         name = self.request.get('stream_name')
         if not name:
@@ -441,10 +447,11 @@ class Delete_subscribe(webapp2.RequestHandler):
 
 class View_all_stream(webapp2.RequestHandler):
     def get(self):
-        grey = '#D0CECE'
-        blue = '#2E75B6'
-        self.response.write(HEAD_TEMPLATE %(blue,blue,grey,blue,blue,blue))
-        self.response.write('<body><p style="font-family:Calibri;color:black;font-size:36.0pt"><b>View All Streams</b></p>')
+        #grey = '#D0CECE'
+        #blue = '#2E75B6'
+        #self.response.write(HEAD_TEMPLATE %(blue,blue,grey,blue,blue,blue))
+        #self.response.write('<body><p style="font-family:Calibri;color:black;font-size:36.0pt"><b>View All Streams</b></p>')
+  
         headers = {"Content-type": "application/json", "Accept": "text/plain"}
         conn = httplib.HTTPConnection("localhost","8080")
         conn.request("POST", "/api_view_all_streams","", headers)
@@ -461,54 +468,68 @@ class View_all_stream(webapp2.RequestHandler):
             rows = len(stream_names)/4
         j = 0
         print "row=%s" %rows
-        for i in range(rows):
-            self.response.write('<table><tr>')
-            if i!=rows-1 or (i==rows-1 and len(stream_names)%4==0):##Not the last row
-                for m in range(4):
-                    self.response.write("""\
-                    <td>
-                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
-                    <img src="%s" width="200px" height="200px" 
-                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
-                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
-                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
-                    </a></div></div>
-                    <style>
-                    .c_img{position:relative;}
-                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
-                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
-                    </style>
-                    </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    """
-                    %(stream_ids[j+m],stream_names[j+m],str(stream_coverurls[j+m]),stream_ids[j+m],stream_names[j+m],stream_names[j+m]))
-	 	j = j + 4
-            else:
-                for m in range(len(stream_names)%4):
-                    self.response.write("""\
-                    <td>
-                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
-                    <img src="%s" width="200px" height="200px" 
-                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
-                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
-                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
-                    </a></div></div>
-                    <style>
-                    .c_img{position:relative;}
-                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
-                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
-                    </style>
-                    </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    """
-                    %(stream_ids[j+m],stream_names[j+m],str(stream_coverurls[j+m]),stream_ids[j+m],stream_names[j+m],stream_names[j+m]))
-                
-            self.response.write('</tr></table></br>')
-        self.response.write('</body></html>')
+        stream_coverurls_str = list()
+        stream_len = len(stream_names)
+        for stream in stream_coverurls:
+          stream_coverurls_str.append(str(stream))
+        template_values = {
+            'stream_names': stream_names,
+            'stream_ids': stream_ids,
+            'stream_coverurls': stream_coverurls_str,
+            'rows': rows,
+            'stream_len':stream_len
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('view_all.html')
+        self.response.write(template.render(template_values))
+#        for i in range(rows):
+#            self.response.write('<table><tr>')
+#            if i!=rows-1 or (i==rows-1 and len(stream_names)%4==0):##Not the last row
+#                for m in range(4):
+#                    self.response.write("""\
+#                    <td>
+#                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
+#                    <img src="%s" width="200px" height="200px" 
+#                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+#                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
+#                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
+#                    </a></div></div>
+#                    <style>
+#                    .c_img{position:relative;}
+#                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+#                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+#                    </style>
+#                    </td>
+#                    <td></td>
+#                    <td></td>
+#                    <td></td>
+#                    """
+#                    %(stream_ids[j+m],stream_names[j+m],str(stream_coverurls[j+m]),stream_ids[j+m],stream_names[j+m],stream_names[j+m]))
+#	 	j = j + 4
+#            else:
+#                for m in range(len(stream_names)%4):
+#                    self.response.write("""\
+#                    <td>
+#                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
+#                    <img src="%s" width="200px" height="200px" 
+#                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+#                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
+#                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
+#                    </a></div></div>
+#                    <style>
+#                    .c_img{position:relative;}
+#                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+#                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+#                    </style>
+#                    </td>
+#                    <td></td>
+#                    <td></td>
+#                    <td></td>
+#                    """
+#                    %(stream_ids[j+m],stream_names[j+m],str(stream_coverurls[j+m]),stream_ids[j+m],stream_names[j+m],stream_names[j+m]))
+#                
+#            self.response.write('</tr></table></br>')
+#        self.response.write('</body></html>')
 
 
 class View_a_stream(webapp2.RequestHandler):

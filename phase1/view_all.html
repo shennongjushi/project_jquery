@@ -1,0 +1,86 @@
+<html>
+  <head>
+    <table>
+      <tr>
+        <td width=779 colspan=8 valign=top>
+          <p style="font-family:Calibri;color:#92D050;font-size:60.0pt"><b>Connex.us</b></p>
+        </td>
+      </tr>
+      <tr>
+        <td width=130 valign=top>
+          <p><a href="/manage" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Manage</a></p>
+        </td>
+        <td width=130 colspan=2 valign=top>
+          <p><a href="/create" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Create</a></p>
+        </td>
+        <td width=130 valign=top>
+          <p><a href="/viewallstreams" style="font-family:Calibri;color:#D0CECE;font-size:16.0pt;text-decoration:none;">View</a></p>
+        </td>
+        <td width=130 valign=top>
+          <p><a href="/search" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Search</a></p>
+        </td>
+        <td width=130 colspan=2 valign=top>
+          <p><a href="/trending" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Trending</a></p>
+        </td>
+        <td width=130 valign=top>
+          <p><a href="/social" style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Social</a></p>
+        </td>
+      </tr>
+    </table>
+  </head>
+  <body>
+    <p style="font-family:Calibri;color:black;font-size:36.0pt"><b>View All Streams</b></p>
+    {% for i in range(rows) %}
+    <table><tr>
+        {% if i!=rows-1 or (i==rows-1 and stream_len%4==0) %}
+        {% for m in range(4) %}
+                    <td>
+                      <div class="c_img"><a href =
+                          "/viewastream?stream_id={{stream_ids[m]
+                          }}&stream_name={{stream_names[m] }}">
+                          <img src={{stream_coverurls[m] }} width="200px" height="200px" 
+                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+                  <div><a href
+                      ="/viewastream?stream_id={{stream_ids[m]}}&stream_name={{
+                      stream_names[m] }}" class="c_words" 
+                      style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">{{
+                      stream_names[m] }}
+                    </a></div></div>
+                    <style>
+                    .c_img{position:relative;}
+                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+                    </style>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+        {% endfor %}
+        {% else %}
+        {% for m in range(stream_len%4) %}
+                    <td>
+                      <div class="c_img"><a href = "/viewastream?stream_id={{
+                          stream_ids[m] }}&stream_name={{ stream_names[m] }}">
+                          <img src={{stream_coverurls[m] }} width="200px" height="200px" 
+                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+                  <div><a href ="/viewastream?stream_id={{ stream_ids[m]
+                      }}&stream_name={{
+                      stream_names[m] }}" class="c_words" 
+                      style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">{{
+                      stream_names[m] }}
+                    </a></div></div>
+                    <style>
+                    .c_img{position:relative;}
+                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+                    </style>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+        {% endfor %}  
+        {% endif %}
+  {% endfor %}
+  </tr></table></br>
+</body>
+</html>
