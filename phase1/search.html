@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <table>
+      <tr>
+        <td width=779 colspan=8 valign=top>
+          <p
+          style="font-family:Calibri;color:#92D050;font-size:60.0pt"><b>Connex.us</b></p>
+        </td>
+      </tr>
+      <tr>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/manage"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Manage</a></p>
+        </td>
+        <td
+          width=130
+          colspan=2
+          valign=top>
+          <p><a
+            href="/create"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Create</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/viewallstreams"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">View</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/search"
+            style="font-family:Calibri;color:#D0CECE;font-size:16.0pt;text-decoration:none;">Search</a></p>
+        </td>
+        <td
+          width=130
+          colspan=2
+          valign=top>
+          <p><a
+            href="/trending"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Trending</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/social"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Social</a></p>
+        </td>
+      </tr>
+    </table>
+  </head>
+  </br>
+  <body>
+    <form action = "/search" enctype = "multipart/form-dat" method = "get">
+      <div><input type = "text" name = "keyword" placeholder="Keyword" style="font-family:Calibri;color:black;font-size:20.0pt;height:25pt;width:200pt;"></div>
+      <div><input type = "submit" values = "Search"></div>
+    </form>
+    {% if keyword %}
+    {% if stream_names %}
+    <p style="font-family:Calibri;color:black;font-size:16.0pt">{{stream_names_len}} results for {{keyword}}, click on an image to view stream </p>
+    {% for i in range(0,stream_names_len) %}
+    <div class="c_img"><a href =
+        "/viewastream?stream_id={{stream_ids[i]}}&stream_name={{stream_names}}">
+        <img src={{stream_coverurls[i]}} width="200px" height="200px" 
+        style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+      <div><a href
+          ="/viewastream?stream_id={{stream_ids[i]}}&stream_name={{stream_names[i]}}" class="c_words" 
+          style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">{{stream_names[i]}}
+    </a></div></div>
+    <style>
+      .c_img{position:relative;}
+      .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+      text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+    </style>
+    </br>
+    {% endfor %} 
+    {% else %}
+    <p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string {{keyword}}</p>
+    {% endif %}
+    {% endif %}
+  </body>
+</html>
+

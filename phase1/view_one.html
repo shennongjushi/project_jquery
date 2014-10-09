@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <table>
+      <tr>
+        <td width=779 colspan=8 valign=top>
+          <p
+          style="font-family:Calibri;color:#92D050;font-size:60.0pt"><b>Connex.us</b></p>
+        </td>
+      </tr>
+      <tr>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/manage"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Manage</a></p>
+        </td>
+        <td
+          width=130
+          colspan=2
+          valign=top>
+          <p><a
+            href="/create"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Create</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/viewallstreams"
+            style="font-family:Calibri;color:#D0CECE;font-size:16.0pt;text-decoration:none;">View</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/search"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Search</a></p>
+        </td>
+        <td
+          width=130
+          colspan=2
+          valign=top>
+          <p><a
+            href="/trending"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Trending</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/social"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Social</a></p>
+        </td>
+      </tr>
+    </table>
+  </head>
+  <body>
+    <p style="font-family:Calibri;color:black;font-size:30.0pt"><b>{{stream_name}}</b></p><table>'
+    {% for url in urls %}
+      <td><img src={{url}} width="200px" height="200px"></img></td>
+      <td></td><td></td>
+    {% endfor %}
+    </table>
+    <a href="/viewastream?stream_id={{stream_id}}&stream_name={{stream_name}}&page_start={{page_start_more}}&page_end={{page_end_more}}">
+      <input type ="button" value="more"></a></tr>
+    {% if status != 'no_less' %}
+      <a href="/viewastream?stream_id={{stream_id}}&stream_name={{stream_name}}&page_start={{page_start_less}}&page_end={{page_end_less}}">
+        <input type ="button" value="less"></a>
+    {% endif %}
+      <form action={{upload_url}} enctype = "multipart/form-data" method="post">
+      <table>
+      <p style="font-family:Calibri;font-size:20.0pt;">Add an Image</p>
+      <tr><input type = "file" name = "img"/></tr></br>
+      <tr><input type="text" name="comment" placeholder="comments"/></tr></br></br>
+      <tr><input type = "submit" value = "Upload file"></tr>
+      </table>
+      </form>
+      {% if (not user) or (stream_id_str not in user.my_stream) %}
+      <form action="/subscribe?stream_id={{stream_id}}&stream_name={{stream_name}}"  method="post">
+        <div><input type = "submit" value = "subscribe"></div>
+      </form>
+      {% endif %}
+      </hr>
+</body>
+</html>
+

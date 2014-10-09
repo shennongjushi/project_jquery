@@ -1,0 +1,95 @@
+<html>
+  <head>
+    <table>
+      <tr>
+        <td width=779 colspan=8 valign=top>
+          <p
+          style="font-family:Calibri;color:#2E75B6;font-size:60.0pt"><b>Connex.us</b></p>
+        </td>
+      </tr>
+      <tr>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/manage"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Manage</a></p>
+        </td>
+        <td
+          width=130
+          colspan=2
+          valign=top>
+          <p><a
+            href="/create"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Create</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/viewallstreams"
+            style="font-family:Calibri;color:#D0CECE;font-size:16.0pt;text-decoration:none;">View</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/search"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Search</a></p>
+        </td>
+        <td
+          width=130
+          colspan=2
+          valign=top>
+          <p><a
+            href="/trending"
+            style="font-family:Calibri;color:#D0CECE;font-size:16.0pt;text-decoration:none;">Trending</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/social"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Social</a></p>
+        </td>
+      </tr>
+    </table>
+  </head>
+  <body>
+    <p style="font-family:Calibri;color:black;font-size:36.0pt"><b>Top 3 Trending Streams</b></p>
+    <table><tr>
+    {% for i in range(stream_names_len) %}
+            <td>
+              <div class="c_img"><a href =
+                  "/viewastream?stream_id={{stream_ids[i]}}&stream_name={{stream_names[i]}}">
+                  <img src={{coverurls[i]}} width="200px" height="200px" 
+            style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+          <div><a href
+              ="/viewastream?stream_id={{stream_ids[i]}}&stream_name={{stream_names[i]}}" class="c_words" 
+              style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">{{stream_names[i]}}
+            </a></div></div>
+            <style>
+            .c_img{position:relative;}
+            .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+            text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+            </style>
+            <div><p
+              style="font-family:Calibri;color:black;font-size:18.0pt">{{last_viewers[i]}} views in past hour
+            </p></div>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+    {% endfor %}
+          <td><form  method = "post">
+          Current Rate<br>
+          <input type="radio" name ="rate" value="0" {{check[0]}}>No reprots<br>
+          <input type="radio" name ="rate" value="1" {{check[1]}}>Every 5 minutes<br>
+          <input type="radio" name ="rate" value="12" {{check[2]}}>Every 1 hour<br>
+          <input type="radio" name ="rate" value="288" {{check[3]}}>Every day<br>
+          <input type="submit" value="Update Rate">
+          </form>
+    </td></table>
+  </body>
+</html>
+

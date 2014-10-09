@@ -108,37 +108,41 @@ class Login(webapp2.RequestHandler):
 
 class Error(webapp2.RequestHandler):
   def get(self):
-        print "llllllllllllll"
-        grey = '#D0CECE'
-        blue = '#2E75B6'
-        self.response.write(HEAD_TEMPLATE %(blue,grey,blue,blue,blue,blue))
+#        grey = '#D0CECE'
+#        blue = '#2E75B6'
+#        self.response.write(HEAD_TEMPLATE %(blue,grey,blue,blue,blue,blue))
         info = self.request.get('info')
-        if info == 'same_name':
-            self.response.write("""\
-            <body>
-            <p style="font-family:Calibri;color:red;font-size:16.0pt">Error:you tried to create a new stream</p>
-            <p style="font-family:Calibri;color:red;font-size:16.0pt">whose name is the same as an existing stream</p>
-            <p style="font-family:Calibri;color:red;font-size:16.0pt">operation did not complete</p>
-            </body>
-            </html>
-            """)
-        elif info == 'no_name':
-            self.response.write("""\
-            <body>
-            <p style="font-family:Calibri;color:red;font-size:16.0pt">Error:you tried to create a new stream</p>
-            <p style="font-family:Calibri;color:red;font-size:16.0pt">But the name is empty</p>
-            <p style="font-family:Calibri;color:red;font-size:16.0pt">operation did not complete</p>
-            </body>
-            </html>
-            """)
-        elif info =='wrong_email':
-            self.response.write("""\
-            <body>
-            <p style="font-family:Calibri;color:red;font-size:16.0pt">Error:Wrong Email</p>
-            <p style="font-family:Calibri;color:red;font-size:16.0pt">operation did not complete</p>
-            </body>
-            </html>
-            """)
+#        if info == 'same_name':
+#            self.response.write("""\
+#            <body>
+#            <p style="font-family:Calibri;color:red;font-size:16.0pt">Error:you tried to create a new stream</p>
+#            <p style="font-family:Calibri;color:red;font-size:16.0pt">whose name is the same as an existing stream</p>
+#            <p style="font-family:Calibri;color:red;font-size:16.0pt">operation did not complete</p>
+#            </body>
+#            </html>
+#            """)
+#        elif info == 'no_name':
+#            self.response.write("""\
+#            <body>
+#            <p style="font-family:Calibri;color:red;font-size:16.0pt">Error:you tried to create a new stream</p>
+#            <p style="font-family:Calibri;color:red;font-size:16.0pt">But the name is empty</p>
+#            <p style="font-family:Calibri;color:red;font-size:16.0pt">operation did not complete</p>
+#            </body>
+#            </html>
+#            """)
+#        elif info =='wrong_email':
+#            self.response.write("""\
+#            <body>
+#            <p style="font-family:Calibri;color:red;font-size:16.0pt">Error:Wrong Email</p>
+#            <p style="font-family:Calibri;color:red;font-size:16.0pt">operation did not complete</p>
+#            </body>
+#            </html>
+#            """)
+        template_value = {
+            'info':info
+        }
+        template = JINJA_ENVIRONMENT.get_template('error.html')
+        self.response.write(template.render(template_value))
 
 #############Create##############
 class Create(webapp2.RequestHandler):
@@ -466,7 +470,7 @@ class View_all_stream(webapp2.RequestHandler):
             rows = len(stream_names)/4 + 1
         else:
             rows = len(stream_names)/4
-        j = 0
+        j = -4
         print "row=%s" %rows
         stream_coverurls_str = list()
         stream_len = len(stream_names)
@@ -477,7 +481,7 @@ class View_all_stream(webapp2.RequestHandler):
             'stream_ids': stream_ids,
             'stream_coverurls': stream_coverurls_str,
             'rows': rows,
-            'stream_len':stream_len
+            'stream_len':stream_len,
         }
 
         template = JINJA_ENVIRONMENT.get_template('view_all.html')
@@ -542,9 +546,9 @@ class View_a_stream(webapp2.RequestHandler):
         else:
            url = users.create_logout_url('/')
            url_linktext = 'Logout'
-           grey = '#D0CECE'
-           blue = '#2E75B6'
-           self.response.write(HEAD_TEMPLATE %(blue,blue,grey,blue,blue,blue))
+#           grey = '#D0CECE'
+#           blue = '#2E75B6'
+#           self.response.write(HEAD_TEMPLATE %(blue,blue,grey,blue,blue,blue))
            stream_name = self.request.get('stream_name')
            stream_id = self.request.get('stream_id')
            page_start = self.request.get('page_start')
@@ -568,44 +572,62 @@ class View_a_stream(webapp2.RequestHandler):
            page_start = data['page_start']
            page_end = data['page_end']
            status = data['status']
-           self.response.write('<body><p style="font-family:Calibri;color:black;font-size:30.0pt"><b>%s</b></p><table>' %stream_name)
-           for url in urls: 
-               self.response.write('<td><img src=%s width="200px" height="200px"></img></td>' %url)
-               self.response.write('<td></td><td></td>')
-           self.response.write('</table>')
-           #######More button##########
-           self.response.write('<a href="/viewastream?stream_id=%s&stream_name=%s&page_start=%s&page_end=%s"><input type ="button" value=%s></a></tr>' %(stream_id,stream_name,page_start_more,page_end_more,"more"))
+#           self.response.write('<body><p style="font-family:Calibri;color:black;font-size:30.0pt"><b>%s</b></p><table>' %stream_name)
+#           for url in urls: 
+#               self.response.write('<td><img src=%s width="200px" height="200px"></img></td>' %url)
+#               self.response.write('<td></td><td></td>')
+#           self.response.write('</table>')
+#           #######More button##########
+#           self.response.write('<a href="/viewastream?stream_id=%s&stream_name=%s&page_start=%s&page_end=%s"><input type ="button" value=%s></a></tr>' %(stream_id,stream_name,page_start_more,page_end_more,"more"))
            user = ndb.Key(Webusers,str(users.get_current_user().user_id())).get()
-           #users = Webusers.query(mail==str(users.get_current_user().email())).fetch()
-           #user = users[0]
-           #######Less button#########
-           if status != 'no_less':
-               self.response.write('<a href="/viewastream?stream_id=%s&stream_name=%s&page_start=%s&page_end=%s"><input type ="button" value=%s></a>' %(stream_id,stream_name,page_start_less,page_end_less,"less"))
+#           #users = Webusers.query(mail==str(users.get_current_user().email())).fetch()
+#           #user = users[0]
+#           #######Less button#########
+#           if status != 'no_less':
+#               self.response.write('<a href="/viewastream?stream_id=%s&stream_name=%s&page_start=%s&page_end=%s"><input type ="button" value=%s></a>' %(stream_id,stream_name,page_start_less,page_end_less,"less"))
 ########   ###################################################################################
 #	   				Change to Blobstore		                  #
 ########   ###################################################################################
            upload_url = blobstore.create_upload_url('/add?stream_id=%s&stream_name=%s&page_start=%s&page_end=%s' %(stream_id,stream_name,page_start,page_end))
            #if user and (str(stream_id) in user.my_stream):
-           self.response.write("""\
-               <form action="%s" enctype = "multipart/form-data" method="post">
-               <table>
-               <p style="font-family:Calibri;font-size:20.0pt;">Add an Image</p>
-               <tr><input type = "file" name = "img"/></tr></br>
-               <tr><input type="text" name="comment" placeholder="comments"/></tr></br></br>
-               <tr><input type = "submit" value = "Upload file"></tr>
-               </table>
-               </form>
-                """ %upload_url)
-           if (not user) or (str(stream_id) not in user.my_stream):
-               self.response.write("""\
-               <form action="/subscribe?stream_id=%s&stream_name=%s"  method="post">
-               <div><input type = "submit" value = "subscribe"></div>
-               </form>
-               </hr>
-               """%(stream_id,stream_name))
-           #global bug
-           #self.response.write("<h1>%s</h1>" %bug)
-           self.response.write('</body></html>')
+#           self.response.write("""\
+#               <form action="%s" enctype = "multipart/form-data" method="post">
+#               <table>
+#               <p style="font-family:Calibri;font-size:20.0pt;">Add an Image</p>
+#               <tr><input type = "file" name = "img"/></tr></br>
+#               <tr><input type="text" name="comment" placeholder="comments"/></tr></br></br>
+#               <tr><input type = "submit" value = "Upload file"></tr>
+#               </table>
+#               </form>
+#                """ %upload_url)
+#           if (not user) or (str(stream_id) not in user.my_stream):
+#               self.response.write("""\
+#               <form action="/subscribe?stream_id=%s&stream_name=%s"  method="post">
+#               <div><input type = "submit" value = "subscribe"></div>
+#               </form>
+#               </hr>
+#               """%(stream_id,stream_name))
+#           #global bug
+#           #self.response.write("<h1>%s</h1>" %bug)
+#           self.response.write('</body></html>')
+        template_values = {
+            'stream_name': stream_name,
+            'stream_id': stream_id,
+            'stream_id_str':str(stream_id),
+            'page_start':page_start,
+            'page_end':page_end,
+            'urls':urls,
+            'page_start_more':page_start_more,
+            'page_end_more':page_end_more,
+            'page_start_less': page_start_less,
+            'page_end_less':page_end_less,
+            'status':status,
+            'upload_url':upload_url,
+            'user':user
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('view_one.html')
+        self.response.write(template.render(template_values))
 
 class Subscribe(webapp2.RequestHandler):
    def post(self):
@@ -677,17 +699,21 @@ class Image_Add(blobstore_handlers.BlobstoreUploadHandler):
 
 class Search(webapp2.RequestHandler):
     def get(self):
-        grey = '#D0CECE'
-        blue = '#2E75B6'
-        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
-        self.response.write("""\
-             </br>
-             <body>
-             <form action = "/search" enctype = "multipart/form-dat" method = "get">
-               <div><input type = "text" name = "keyword" placeholder="Keyword" style="font-family:Calibri;color:black;font-size:20.0pt;height:25pt;width:200pt;"></div>
-               <div><input type = "submit" values = "Search"></div>
-            </form>""")
+#        grey = '#D0CECE'
+#        blue = '#2E75B6'
+#        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
+#        self.response.write("""\
+#             </br>
+#             <body>
+#             <form action = "/search" enctype = "multipart/form-dat" method = "get">
+#               <div><input type = "text" name = "keyword" placeholder="Keyword" style="font-family:Calibri;color:black;font-size:20.0pt;height:25pt;width:200pt;"></div>
+#               <div><input type = "submit" values = "Search"></div>
+#            </form>""")
         keyword = self.request.get('keyword')
+        stream_names = list()
+        stream_coverurls = list()
+        stream_coverurls_str = list()
+        stream_ids = list()
         if keyword:
             requests = {'keyword':str(keyword)}
             headers = {"Content-type": "application/json", "Accept": "text/plain"}
@@ -697,28 +723,40 @@ class Search(webapp2.RequestHandler):
             data = json.loads(responses.read())
             stream_names = data['names']
             stream_coverurls = data['coverurls']
+            for url in stream_coverurls:
+              stream_coverurls_str.append(str(url))
             stream_ids = data['ids']
-            if stream_names:
-                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">%d results for %s, click on an image to view stream </p>' %(len(stream_names),keyword))
-                for i in range(0,len(stream_names)):
-                    self.response.write("""\
-                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
-                    <img src="%s" width="200px" height="200px" 
-                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
-                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
-                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
-                    </a></div></div>
-                    <style>
-                    .c_img{position:relative;}
-                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
-                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
-                    </style>
-                    </br>
-                    """
-                    %(stream_ids[i],stream_names[i],str(stream_coverurls[i]),stream_ids[i],stream_names[i],stream_names[i]))
-            else:
-                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string %s</p>' %keyword)
-        self.response.write('</body></html>')
+#            if stream_names:
+#                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">%d results for %s, click on an image to view stream </p>' %(len(stream_names),keyword))
+#                for i in range(0,len(stream_names)):
+#                    self.response.write("""\
+#                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
+#                    <img src="%s" width="200px" height="200px" 
+#                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+#                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
+#                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
+#                    </a></div></div>
+#                    <style>
+#                    .c_img{position:relative;}
+#                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+#                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+#                    </style>
+#                    </br>
+#                    """
+#                    %(stream_ids[i],stream_names[i],str(stream_coverurls[i]),stream_ids[i],stream_names[i],stream_names[i]))
+#            else:
+#                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string %s</p>' %keyword)
+#        self.response.write('</body></html>')
+        template_values = {
+            'keyword': keyword,
+            'stream_names':stream_names,
+            'stream_coverurls':stream_coverurls_str,
+            'stream_ids':stream_ids,
+            'stream_names_len':len(stream_names)
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('search.html')
+        self.response.write(template.render(template_values))
 
 class Social(webapp2.RequestHandler):
     def get(self):
@@ -737,10 +775,10 @@ check = ['checked','','','']
 #message = ""
 class Trending(webapp2.RequestHandler):
     def get(self):
-        grey = '#D0CECE'
-        blue = '#2E75B6'
-        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,blue,grey,blue))
-        self.response.write('<body><p style="font-family:Calibri;color:black;font-size:36.0pt"><b>Top 3 Trending Streams</b></p>')
+#        grey = '#D0CECE'
+#        blue = '#2E75B6'
+#        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,blue,grey,blue))
+#        self.response.write('<body><p style="font-family:Calibri;color:black;font-size:36.0pt"><b>Top 3 Trending Streams</b></p>')
         headers = {"Content-type": "application/json", "Accept": "text/plain"}
         conn = httplib.HTTPConnection("localhost","8080")
         conn.request("POST", "/api_most_viewed_streams","", headers)
@@ -750,33 +788,36 @@ class Trending(webapp2.RequestHandler):
         coverurls = data['coverurls']
         stream_ids = data['stream_ids']
         last_viewers = data['last_viewers']
-        self.response.write('<table><tr>')
+#        self.response.write('<table><tr>')
+        coverurls_str = list()
+        for url in coverurls:
+          coverurls_str.append(str(url))
         #global message
         #message = ""
         #for i in range(len(stream_names)):
         #    message = message+stream_names[i]+":"+str(last_viewers[i])+"\n"
-        for i in range(len(stream_names)):
-            self.response.write("""\
-            <td>
-            <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
-            <img src="%s" width="200px" height="200px" 
-            style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
-            <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
-            style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
-            </a></div></div>
-            <style>
-            .c_img{position:relative;}
-            .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
-            text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
-            </style>
-            <div><p style="font-family:Calibri;color:black;font-size:18.0pt">%d views in past hour
-            </p></div>
-            </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            """
-            %(stream_ids[i],stream_names[i],str(coverurls[i]),stream_ids[i],stream_names[i],stream_names[i],last_viewers[i]))
+#        for i in range(len(stream_names)):
+#            self.response.write("""\
+#            <td>
+#            <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
+#            <img src="%s" width="200px" height="200px" 
+#            style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+#            <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
+#            style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
+#            </a></div></div>
+#            <style>
+#            .c_img{position:relative;}
+#            .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+#            text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+#            </style>
+#            <div><p style="font-family:Calibri;color:black;font-size:18.0pt">%d views in past hour
+#            </p></div>
+#            </td>
+#            <td></td>
+#            <td></td>
+#            <td></td>
+#            """
+#            %(stream_ids[i],stream_names[i],str(coverurls[i]),stream_ids[i],stream_names[i],stream_names[i],last_viewers[i]))
         
         rate_now = self.request.get('rate')
         global check
@@ -790,20 +831,31 @@ class Trending(webapp2.RequestHandler):
             elif rate_now == '288':
                check=['','','','checked']
 
-        self.response.write("""
-          <td><form  method = "post">
-          Current Rate<br>
-          <input type="radio" name ="rate" value="0" %s>No reprots<br>
-          <input type="radio" name ="rate" value="1" %s>Every 5 minutes<br>
-          <input type="radio" name ="rate" value="12" %s>Every 1 hour<br>
-          <input type="radio" name ="rate" value="288" %s>Every day<br>
-          <input type="submit" value="Update Rate">
-          </form>
-          </td></table>
-          </body>
-          </html>
-          """
-          %(check[0],check[1],check[2],check[3]))
+#        self.response.write("""
+#          <td><form  method = "post">
+#          Current Rate<br>
+#          <input type="radio" name ="rate" value="0" %s>No reprots<br>
+#          <input type="radio" name ="rate" value="1" %s>Every 5 minutes<br>
+#          <input type="radio" name ="rate" value="12" %s>Every 1 hour<br>
+#          <input type="radio" name ="rate" value="288" %s>Every day<br>
+#          <input type="submit" value="Update Rate">
+#          </form>
+#          </td></table>
+#          </body>
+#          </html>
+#          """
+#          %(check[0],check[1],check[2],check[3]))
+        template_values = {
+            'stream_names': stream_names,
+            'stream_names_len':len(stream_names),
+            'coverurls':coverurls_str,
+            'stream_ids':stream_ids,
+            'last_viewers':last_viewers,
+            'check':check
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('trend.html')
+        self.response.write(template.render(template_values))
     def post(self):
       ########
       global count

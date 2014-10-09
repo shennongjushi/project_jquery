@@ -30,21 +30,22 @@
   </head>
   <body>
     <p style="font-family:Calibri;color:black;font-size:36.0pt"><b>View All Streams</b></p>
+    {% set j_counter = 0 %}
     {% for i in range(rows) %}
     <table><tr>
         {% if i!=rows-1 or (i==rows-1 and stream_len%4==0) %}
         {% for m in range(4) %}
                     <td>
                       <div class="c_img"><a href =
-                          "/viewastream?stream_id={{stream_ids[m]
-                          }}&stream_name={{stream_names[m] }}">
-                          <img src={{stream_coverurls[m] }} width="200px" height="200px" 
+                          "/viewastream?stream_id={{stream_ids[j_counter+m]
+                          }}&stream_name={{stream_names[j_counter+m] }}">
+                          <img src={{stream_coverurls[j_counter+m] }} width="200px" height="200px" 
                     style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
                   <div><a href
-                      ="/viewastream?stream_id={{stream_ids[m]}}&stream_name={{
-                      stream_names[m] }}" class="c_words" 
+                      ="/viewastream?stream_id={{stream_ids[j_counter+m]}}&stream_name={{
+                      stream_names[j_counter+m] }}" class="c_words" 
                       style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">{{
-                      stream_names[m] }}
+                      stream_names[j_counter+m] }}
                     </a></div></div>
                     <style>
                     .c_img{position:relative;}
@@ -56,18 +57,19 @@
                     <td></td>
                     <td></td>
         {% endfor %}
+        {% set j_counter = j_counter + 4 %}
         {% else %}
         {% for m in range(stream_len%4) %}
                     <td>
                       <div class="c_img"><a href = "/viewastream?stream_id={{
-                          stream_ids[m] }}&stream_name={{ stream_names[m] }}">
-                          <img src={{stream_coverurls[m] }} width="200px" height="200px" 
+                          stream_ids[j_counter+m] }}&stream_name={{ stream_names[j_counter+m] }}">
+                          <img src={{stream_coverurls[j_counter+m] }} width="200px" height="200px" 
                     style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
-                  <div><a href ="/viewastream?stream_id={{ stream_ids[m]
+                  <div><a href ="/viewastream?stream_id={{ stream_ids[j_counter+m]
                       }}&stream_name={{
-                      stream_names[m] }}" class="c_words" 
+                      stream_names[j_counter+m] }}" class="c_words" 
                       style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">{{
-                      stream_names[m] }}
+                      stream_names[j_counter+m] }}
                     </a></div></div>
                     <style>
                     .c_img{position:relative;}
