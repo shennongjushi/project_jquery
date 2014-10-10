@@ -699,9 +699,43 @@ class Image_Add(blobstore_handlers.BlobstoreUploadHandler):
 
 class Search(webapp2.RequestHandler):
     def get(self):
-#        grey = '#D0CECE'
-#        blue = '#2E75B6'
-#        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
+        stream_name = list()
+        streams = Stream.query().fetch()
+        for stream in streams:
+            stream_name.append(str(stream.name))
+        print stream_name
+        grey = '#D0CECE'
+        blue = '#2E75B6'
+        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
+        self.response.write("""\
+            <link href="css/jquery-ui.css" rel="stylesheet">
+            <script src="js/jquery-1.10.2.js"></script>
+            <script src="js/jquery-ui.js"></script>
+            <script>
+             $(function() {
+               var availableTags = %s;
+             $(
+             "#keyword"
+             ).autocomplete({
+             source:
+             availableTags
+             });
+             });
+            </script>
+             <body>
+             <br>
+              <form action = "/search" enctype = "multipart/form-dat" method = "get">
+                <div class="ui-widget">
+                <label for="tags">Search:
+                </label>
+                <input type = "text" id="keyword" name= "keyword"
+                placeholder="Keyword">
+                </div>
+                <div class="ui-widget">
+                <label for="button">
+                 <input type = "submit" values = "Search"></div>
+                 </form>
+                """%stream_name)
 #        self.response.write("""\
 #             </br>
 #             <body>
@@ -710,6 +744,8 @@ class Search(webapp2.RequestHandler):
 #               <div><input type = "submit" values = "Search"></div>
 #            </form>""")
         keyword = self.request.get('keyword')
+        print 'kkkkkkkkkkkkkkk'
+        print keyword
         stream_names = list()
         stream_coverurls = list()
         stream_coverurls_str = list()
@@ -726,37 +762,37 @@ class Search(webapp2.RequestHandler):
             for url in stream_coverurls:
               stream_coverurls_str.append(str(url))
             stream_ids = data['ids']
-#            if stream_names:
-#                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">%d results for %s, click on an image to view stream </p>' %(len(stream_names),keyword))
-#                for i in range(0,len(stream_names)):
-#                    self.response.write("""\
-#                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
-#                    <img src="%s" width="200px" height="200px" 
-#                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
-#                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
-#                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
-#                    </a></div></div>
-#                    <style>
-#                    .c_img{position:relative;}
-#                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
-#                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
-#                    </style>
-#                    </br>
-#                    """
-#                    %(stream_ids[i],stream_names[i],str(stream_coverurls[i]),stream_ids[i],stream_names[i],stream_names[i]))
-#            else:
-#                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string %s</p>' %keyword)
+            if stream_names:
+                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">%d results for %s, click on an image to view stream </p>' %(len(stream_names),keyword))
+                for i in range(0,len(stream_names)):
+                    self.response.write("""\
+                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
+                    <img src="%s" width="200px" height="200px" 
+                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
+                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
+                    </a></div></div>
+                    <style>
+                    .c_img{position:relative;}
+                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+                    </style>
+                    </br>
+                    """
+                    %(stream_ids[i],stream_names[i],str(stream_coverurls[i]),stream_ids[i],stream_names[i],stream_names[i]))
+            else:
+                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string %s</p>' %keyword)
 #        self.response.write('</body></html>')
-        template_values = {
-            'keyword': keyword,
-            'stream_names':stream_names,
-            'stream_coverurls':stream_coverurls_str,
-            'stream_ids':stream_ids,
-            'stream_names_len':len(stream_names)
-        }
-
-        template = JINJA_ENVIRONMENT.get_template('search.html')
-        self.response.write(template.render(template_values))
+#        template_values = {
+#            'keyword': keyword,
+#            'stream_names':stream_names,
+#            'stream_coverurls':stream_coverurls_str,
+#            'stream_ids':stream_ids,
+#            'stream_names_len':len(stream_names)
+#        }
+#
+#        template = JINJA_ENVIRONMENT.get_template('search.html')
+#        self.response.write(template.render(template_values))
 
 class Social(webapp2.RequestHandler):
     def get(self):
