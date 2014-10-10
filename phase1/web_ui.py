@@ -696,14 +696,20 @@ class Image_Add(blobstore_handlers.BlobstoreUploadHandler):
       ################for debug##################
        else:
            self.redirect('/debug?status=%s' %responses.status)
-
+global data_center
+data_center = list()
+class Search_Update(webapp2.RequestHandler):
+  def get(self):
+    global data_center
+    data_center = list()
+    streams = Stream.query().fetch()
+    for stream in streams:
+      data_center.append(str(stream.name))
 class Search(webapp2.RequestHandler):
     def get(self):
-        stream_name = list()
-        streams = Stream.query().fetch()
-        for stream in streams:
-            stream_name.append(str(stream.name))
-        print stream_name
+        global data_center
+        print "kkkkkkkkkkkkkkkkkkkkkkk"
+        print data_center
         grey = '#D0CECE'
         blue = '#2E75B6'
         self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
@@ -733,9 +739,14 @@ class Search(webapp2.RequestHandler):
                 </div>
                 <div class="ui-widget">
                 <label for="button">
-                 <input type = "submit" values = "Search"></div>
+                 <button type = "submit"> Search</button></div>
                  </form>
-                """%stream_name)
+              <form action = "/search" method = "post">
+              <div class = "ui-widget">
+              <label for ="button">
+                <button type = "submit">Update Data Center</button></div>
+              </form>
+                """%data_center)
 #        self.response.write("""\
 #             </br>
 #             <body>
@@ -793,6 +804,14 @@ class Search(webapp2.RequestHandler):
 #
 #        template = JINJA_ENVIRONMENT.get_template('search.html')
 #        self.response.write(template.render(template_values))
+    def post(self):
+        print "hahahahahahaha"
+        global data_center
+        data_center = list()
+        streams = Stream.query().fetch()
+        for stream in streams:
+          data_center.append(str(stream.name))
+        self.redirect ('/search')
 
 class Social(webapp2.RequestHandler):
     def get(self):
@@ -947,6 +966,7 @@ application = webapp2.WSGIApplication([
     ('/add',Image_Add),
     ('/debug',Debug),
     ('/search',Search),
+    ('/search_update',Search_Update),
     ('/trending', Trending),
     ('/social', Social),
     ('/subscribe', Subscribe),
