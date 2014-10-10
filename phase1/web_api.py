@@ -272,6 +272,13 @@ class Search_streams_api(webapp2.RequestHandler):
                 print type(stream.date)
                 if i == 5:
                     break
+            elif query_string.lower() in stream.tag.lower():
+                i = i + 1
+                responses['names'].append(stream.name)
+                responses['coverurls'].append(stream.coverurl)
+                responses['ids'].append(stream.key.id())
+                if i == 5:
+                  break
         self.response.headers['Content-Type'] = "application/json"
         self.response.headers['Accept'] = "text/plain"
         self.response.write(json.dumps(responses))

@@ -704,7 +704,11 @@ class Search_Update(webapp2.RequestHandler):
     data_center = list()
     streams = Stream.query().fetch()
     for stream in streams:
-      data_center.append(str(stream.name))
+      if(str(stream.name)) not in data_center:
+        data_center.append(str(stream.name))
+      if str(stream.tag):
+        if(str(stream.tag)) not in data_center:
+          data_center.append(str(stream.tag))
 class Search(webapp2.RequestHandler):
     def get(self):
         global data_center
@@ -755,8 +759,6 @@ class Search(webapp2.RequestHandler):
 #               <div><input type = "submit" values = "Search"></div>
 #            </form>""")
         keyword = self.request.get('keyword')
-        print 'kkkkkkkkkkkkkkk'
-        print keyword
         stream_names = list()
         stream_coverurls = list()
         stream_coverurls_str = list()
@@ -810,7 +812,11 @@ class Search(webapp2.RequestHandler):
         data_center = list()
         streams = Stream.query().fetch()
         for stream in streams:
-          data_center.append(str(stream.name))
+          if str(stream.name) not in data_center:
+              data_center.append(str(stream.name))
+          if str(stream.tag):
+            if(stream.tag) not in data_center:
+              data_center.append(str(stream.tag))
         self.redirect ('/search')
 
 class Social(webapp2.RequestHandler):
