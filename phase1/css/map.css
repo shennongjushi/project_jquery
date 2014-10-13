@@ -1,0 +1,12 @@
+#map_canvas{
+	
+	margin-left:10px;
+	width:800px;
+	height:400px;
+	border:10px solid;
+	border-radius:10px;
+	
+}
+#slider-range{
+	width:840px;
+}

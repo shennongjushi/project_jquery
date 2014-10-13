@@ -1,0 +1,7 @@
+cron:
+  - description: trending job
+    url: /count
+    schedule: every 5 minutes
+  - description: update search data center
+    url: /search_update
+    schedule: every 1 hours

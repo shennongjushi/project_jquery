@@ -1,10 +1,11 @@
+from __future__ import with_statement
 import cgi
 import urllib
 from google.appengine.ext import blobstore
 from google.appengine.ext.webapp import blobstore_handlers
 from google.appengine.api import users
 from google.appengine.ext import ndb
-from google.appengine.api import images
+from google.appengine.api import files, images
 from google.appengine.api import mail
 from datetime import *
 from web_api import *
@@ -17,6 +18,14 @@ import mimetypes
 import base64
 import os
 import jinja2
+import re
+import random
+#MIN_FILE_SIZE = 1  # bytes
+#MAX_FILE_SIZE = 5000000  # bytes
+#IMAGE_TYPES = re.compile('image/(gif|p?jpeg|(x-)?png)')
+#ACCEPT_FILE_TYPES = IMAGE_TYPES
+#THUMBNAIL_MODIFICATOR = '=s80'  # max width / height
+#EXPIRATION_TIME = 300  # seconds
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
@@ -535,8 +544,173 @@ class View_all_stream(webapp2.RequestHandler):
 #            self.response.write('</tr></table></br>')
 #        self.response.write('</body></html>')
 
+MIN_FILE_SIZE = 1  # bytes
+MAX_FILE_SIZE = 5000000  # bytes
+IMAGE_TYPES = re.compile('image/(gif|p?jpeg|(x-)?png)')
+ACCEPT_FILE_TYPES = IMAGE_TYPES
+THUMBNAIL_MODIFICATOR = '=s80'  # max width / height
+
+def cleanup(blob_keys):
+    blobstore.delete(blob_keys)
 
 class View_a_stream(webapp2.RequestHandler):
+################################################################
+    def initialize(self, request, response):
+        super(View_a_stream, self).initialize(request, response)
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.headers[
+            'Access-Control-Allow-Methods'
+        ] = 'OPTIONS, HEAD, GET, POST, PUT, DELETE'
+        self.response.headers[
+            'Access-Control-Allow-Headers'
+        ] = 'Content-Type, Content-Range, Content-Disposition'
+
+    def validate(self, file):
+        if file['size'] < MIN_FILE_SIZE:
+            file['error'] = 'File is too small'
+        elif file['size'] > MAX_FILE_SIZE:
+            file['error'] = 'File is too big'
+        elif not ACCEPT_FILE_TYPES.match(file['type']):
+            file['error'] = 'Filetype not allowed'
+        else:
+            return True
+        return False
+
+    def get_file_size(self, file):
+        file.seek(0, 2)  # Seek to the end of the file
+        size = file.tell()  # Get the position of EOF
+        file.seek(0)  # Reset the file position to the beginning
+        return size
+
+    def write_blob(self, data, info):
+        blob = files.blobstore.create(
+            mime_type=info['type'],
+            _blobinfo_uploaded_filename=info['name']
+        )
+        with files.open(blob, 'a') as f:
+            f.write(data)
+        files.finalize(blob)
+        return files.blobstore.get_blob_key(blob)
+
+    def handle_upload(self):
+        results = []
+        blob_keys = []
+        print self.request.POST.items()
+        for name, fieldStorage in self.request.POST.items():
+            if type(fieldStorage) is unicode:
+                continue
+            result = {}
+            result['name'] = re.sub(
+                r'^.*\\',
+                '',
+                fieldStorage.filename
+            )
+            result['type'] = fieldStorage.type
+            result['size'] = self.get_file_size(fieldStorage.file)
+            if self.validate(result):
+                blob_key = str(
+                    self.write_blob(fieldStorage.value, result)
+                )
+                blob_keys.append(blob_key)
+                result['deleteType'] = 'DELETE'
+                result['deleteUrl'] = self.request.host_url +\
+                    '/viewastream?key=' + urllib.quote(blob_key, '')
+                if (IMAGE_TYPES.match(result['type'])):
+                    try:
+                        result['url'] = images.get_serving_url(
+                            blob_key,
+                            secure_url=self.request.host_url.startswith(
+                                'https'
+                            )
+                        )
+                        result['thumbnailUrl'] = result['url'] +\
+                            THUMBNAIL_MODIFICATOR
+                    except:  # Could not get an image serving url
+                        pass
+                if not 'url' in result:
+                    result['url'] = self.request.host_url +\
+                        '/img' + blob_key + '/' + urllib.quote(
+                            result['name'].encode('utf-8'), '')
+            results.append(result)
+        return results
+
+    def options(self):
+        pass
+
+    def head(self):
+        pass
+
+    def post(self):
+        if (self.request.get('_method') == 'DELETE'):
+            return self.delete()
+        results = self.handle_upload()
+        result = {'files': results}
+        s = json.dumps(result, separators=(',', ':'))
+        redirect = self.request.get('redirect')
+        if redirect:
+            return self.redirect(str(
+                redirect.replace('%s', urllib.quote(s, ''), 1)
+            ))
+        if 'application/json' in self.request.headers.get('Accept'):
+            self.response.headers['Content-Type'] = 'application/json'
+        #self.response.write(s)
+###############################################################
+        stream_id = self.request.get('stream_id')
+        stream_name = self.request.get('stream_name')
+        page_start = self.request.get('page_start')
+        page_end = self.request.get('page_end')
+        latitude = ""
+        longitude = ""
+        temp = self.request.POST.items()
+        for tag, value in temp:
+           if str(tag) == 'x':
+              latitude = str(float(value)+random.random()/1800)
+           elif str(tag) == 'y':
+              longitude = str(float(value)+random.random()/1800)
+  
+        urls = list()
+        for result in results:
+            urls.append(result['url'])
+        requests = {
+            'file': urls,###Use the blobkey
+            'stream_id': stream_id,
+            'location' : {'latitude':latitude,'longitude':longitude}
+        }
+
+        headers = {"Content-type": "application/json"}
+        conn = httplib.HTTPConnection("localhost","8080")
+        conn.request("POST", "/api_image_upload", json.dumps(requests), headers)
+        responses = conn.getresponse()
+        #~if results:
+        #~   if int(page_end)+len(results) >= 3:
+        #~       page_start = 0
+        #~       page_end = 2
+        #~   else:
+        #~       page_start = 0
+        #~       page_end = int(page_end) + len(results)
+        #~query_params = {'stream_id':stream_id, 'stream_name':stream_name, 'page_start':page_start, 'page_end':page_end}
+        if responses.status == 200:
+           print "hello!!!!!"
+           print s
+           self.response.write(s)
+           #self.redirect('/viewastream?'+urllib.urlencode(query_params))
+           #print "binbinbinbin"
+###############################################################
+    def delete(self):
+        print "test_delete1"
+        key = self.request.get('key') or ''
+        print "key=%s" %key
+        blobstore.delete(key)
+        images = Imag.query().order(-Imag.date).fetch()
+        for image in images:
+           if str(key) in image.pic:
+              image.key.delete()
+              break  
+        s = json.dumps({key: True}, separators=(',', ':'))
+        if 'application/json' in self.request.headers.get('Accept'):
+            self.response.headers['Content-Type'] = 'application/json'
+        self.response.write(s)
+###################################################################
     def get(self):
         user = users.get_current_user()
         url = ''
@@ -546,9 +720,6 @@ class View_a_stream(webapp2.RequestHandler):
         else:
            url = users.create_logout_url('/')
            url_linktext = 'Logout'
-#           grey = '#D0CECE'
-#           blue = '#2E75B6'
-#           self.response.write(HEAD_TEMPLATE %(blue,blue,grey,blue,blue,blue))
            stream_name = self.request.get('stream_name')
            stream_id = self.request.get('stream_id')
            page_start = self.request.get('page_start')
@@ -572,62 +743,24 @@ class View_a_stream(webapp2.RequestHandler):
            page_start = data['page_start']
            page_end = data['page_end']
            status = data['status']
-#           self.response.write('<body><p style="font-family:Calibri;color:black;font-size:30.0pt"><b>%s</b></p><table>' %stream_name)
-#           for url in urls: 
-#               self.response.write('<td><img src=%s width="200px" height="200px"></img></td>' %url)
-#               self.response.write('<td></td><td></td>')
-#           self.response.write('</table>')
-#           #######More button##########
-#           self.response.write('<a href="/viewastream?stream_id=%s&stream_name=%s&page_start=%s&page_end=%s"><input type ="button" value=%s></a></tr>' %(stream_id,stream_name,page_start_more,page_end_more,"more"))
            user = ndb.Key(Webusers,str(users.get_current_user().user_id())).get()
-#           #users = Webusers.query(mail==str(users.get_current_user().email())).fetch()
-#           #user = users[0]
-#           #######Less button#########
-#           if status != 'no_less':
-#               self.response.write('<a href="/viewastream?stream_id=%s&stream_name=%s&page_start=%s&page_end=%s"><input type ="button" value=%s></a>' %(stream_id,stream_name,page_start_less,page_end_less,"less"))
-########   ###################################################################################
-#	   				Change to Blobstore		                  #
-########   ###################################################################################
-           upload_url = blobstore.create_upload_url('/add?stream_id=%s&stream_name=%s&page_start=%s&page_end=%s' %(stream_id,stream_name,page_start,page_end))
-           #if user and (str(stream_id) in user.my_stream):
-#           self.response.write("""\
-#               <form action="%s" enctype = "multipart/form-data" method="post">
-#               <table>
-#               <p style="font-family:Calibri;font-size:20.0pt;">Add an Image</p>
-#               <tr><input type = "file" name = "img"/></tr></br>
-#               <tr><input type="text" name="comment" placeholder="comments"/></tr></br></br>
-#               <tr><input type = "submit" value = "Upload file"></tr>
-#               </table>
-#               </form>
-#                """ %upload_url)
-#           if (not user) or (str(stream_id) not in user.my_stream):
-#               self.response.write("""\
-#               <form action="/subscribe?stream_id=%s&stream_name=%s"  method="post">
-#               <div><input type = "submit" value = "subscribe"></div>
-#               </form>
-#               </hr>
-#               """%(stream_id,stream_name))
-#           #global bug
-#           #self.response.write("<h1>%s</h1>" %bug)
-#           self.response.write('</body></html>')
-        template_values = {
-            'stream_name': stream_name,
-            'stream_id': stream_id,
-            'stream_id_str':str(stream_id),
-            'page_start':page_start,
-            'page_end':page_end,
-            'urls':urls,
-            'page_start_more':page_start_more,
-            'page_end_more':page_end_more,
-            'page_start_less': page_start_less,
-            'page_end_less':page_end_less,
-            'status':status,
-            'upload_url':upload_url,
-            'user':user
-        }
+           template_values = {
+               'stream_name': stream_name,
+               'stream_id': stream_id,
+               'stream_id_str':str(stream_id),
+               'page_start':page_start,
+               'page_end':page_end,
+               'urls':urls,
+               'page_start_more':page_start_more,
+               'page_end_more':page_end_more,
+               'page_start_less': page_start_less,
+               'page_end_less':page_end_less,
+               'status':status,
+               'user':user
+            }
 
-        template = JINJA_ENVIRONMENT.get_template('view_one.html')
-        self.response.write(template.render(template_values))
+           template = JINJA_ENVIRONMENT.get_template('view_one.html')
+           self.response.write(template.render(template_values))
 
 class Subscribe(webapp2.RequestHandler):
    def post(self):
@@ -659,98 +792,49 @@ class Image_Show(blobstore_handlers.BlobstoreDownloadHandler):
 ######################################################################################
 #                          Blobstore Upload Handler                                  #
 ######################################################################################
-class Image_Add(blobstore_handlers.BlobstoreUploadHandler):
-   def post(self):
-       stream_id = self.request.get('stream_id')
-       stream_name = self.request.get('stream_name')
-       page_start = self.request.get('page_start')
-       page_end = self.request.get('page_end')
-       comment = self.request.get('comment')
-       upload_files = self.get_uploads('img')
-       if upload_files:
-           blob_info = upload_files[0]
-           blob_key = str(blob_info.key())
-       else:
-           blob_key = ''
-       requests = {
-            'file': blob_key,###Use the blobkey
-            'stream_id': stream_id,
-            'comment': comment
-       }
-       headers = {"Content-type": "application/json"}
-       conn = httplib.HTTPConnection("localhost","8080")
-       conn.request("POST", "/api_image_upload", json.dumps(requests), headers)
-       responses = conn.getresponse()
-       #global bug
-       #bug = responses.status
-       if upload_files:
-           if int(page_end)+1 >= 3:
-               page_start = 0
-               page_end = 2
-           else:
-               page_start = 0
-               page_end = int(page_end) + 1
-       query_params = {'stream_id':stream_id, 'stream_name':stream_name, 'page_start':page_start, 'page_end':page_end}
-       if responses.status == 200:
-           self.redirect('/viewastream?'+urllib.urlencode(query_params))
-      ################for debug##################
-       else:
-           self.redirect('/debug?status=%s' %responses.status)
-global data_center
-data_center = list()
-class Search_Update(webapp2.RequestHandler):
-  def get(self):
-    global data_center
-    data_center = list()
-    streams = Stream.query().fetch()
-    for stream in streams:
-      if(str(stream.name)) not in data_center:
-        data_center.append(str(stream.name))
-      if str(stream.tag):
-        if(str(stream.tag)) not in data_center:
-          data_center.append(str(stream.tag))
+#class Image_Add(blobstore_handlers.BlobstoreUploadHandler):
+#   def post(self):
+#       stream_id = self.request.get('stream_id')
+#       stream_name = self.request.get('stream_name')
+#       page_start = self.request.get('page_start')
+#       page_end = self.request.get('page_end')
+#       comment = self.request.get('comment')
+#       upload_files = self.get_uploads('img')
+#       if upload_files:
+#           blob_info = upload_files[0]
+#           blob_key = str(blob_info.key())
+#       else:
+#           blob_key = ''
+#       requests = {
+#            'file': blob_key,###Use the blobkey
+#            'stream_id': stream_id,
+#            'comment': comment
+#       }
+#       headers = {"Content-type": "application/json"}
+#       conn = httplib.HTTPConnection("localhost","8080")
+#       conn.request("POST", "/api_image_upload", json.dumps(requests), headers)
+#       responses = conn.getresponse()
+#       #global bug
+#       #bug = responses.status
+#       if upload_files:
+#           if int(page_end)+1 >= 3:
+#               page_start = 0
+#               page_end = 2
+#           else:
+#               page_start = 0
+#               page_end = int(page_end) + 1
+#       query_params = {'stream_id':stream_id, 'stream_name':stream_name, 'page_start':page_start, 'page_end':page_end}
+#       if responses.status == 200:
+#           self.redirect('/viewastream?'+urllib.urlencode(query_params))
+#      ################for debug##################
+#       else:
+#           self.redirect('/debug?status=%s' %responses.status)
+
 class Search(webapp2.RequestHandler):
     def get(self):
-        global data_center
-        print "kkkkkkkkkkkkkkkkkkkkkkk"
-        print data_center
-        grey = '#D0CECE'
-        blue = '#2E75B6'
-        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
-        self.response.write("""\
-            <link href="css/jquery-ui.css" rel="stylesheet">
-            <script src="js/jquery-1.10.2.js"></script>
-            <script src="js/jquery-ui.js"></script>
-            <script>
-             $(function() {
-               var availableTags = %s;
-             $(
-             "#keyword"
-             ).autocomplete({
-             source:
-             availableTags
-             });
-             });
-            </script>
-             <body>
-             <br>
-              <form action = "/search" enctype = "multipart/form-dat" method = "get">
-                <div class="ui-widget">
-                <label for="tags">Search:
-                </label>
-                <input type = "text" id="keyword" name= "keyword"
-                placeholder="Keyword">
-                </div>
-                <div class="ui-widget">
-                <label for="button">
-                 <button type = "submit"> Search</button></div>
-                 </form>
-              <form action = "/search" method = "post">
-              <div class = "ui-widget">
-              <label for ="button">
-                <button type = "submit">Update Data Center</button></div>
-              </form>
-                """%data_center)
+#        grey = '#D0CECE'
+#        blue = '#2E75B6'
+#        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
 #        self.response.write("""\
 #             </br>
 #             <body>
@@ -775,49 +859,37 @@ class Search(webapp2.RequestHandler):
             for url in stream_coverurls:
               stream_coverurls_str.append(str(url))
             stream_ids = data['ids']
-            if stream_names:
-                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">%d results for %s, click on an image to view stream </p>' %(len(stream_names),keyword))
-                for i in range(0,len(stream_names)):
-                    self.response.write("""\
-                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
-                    <img src="%s" width="200px" height="200px" 
-                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
-                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
-                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
-                    </a></div></div>
-                    <style>
-                    .c_img{position:relative;}
-                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
-                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
-                    </style>
-                    </br>
-                    """
-                    %(stream_ids[i],stream_names[i],str(stream_coverurls[i]),stream_ids[i],stream_names[i],stream_names[i]))
-            else:
-                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string %s</p>' %keyword)
+#            if stream_names:
+#                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">%d results for %s, click on an image to view stream </p>' %(len(stream_names),keyword))
+#                for i in range(0,len(stream_names)):
+#                    self.response.write("""\
+#                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
+#                    <img src="%s" width="200px" height="200px" 
+#                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+#                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
+#                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
+#                    </a></div></div>
+#                    <style>
+#                    .c_img{position:relative;}
+#                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+#                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+#                    </style>
+#                    </br>
+#                    """
+#                    %(stream_ids[i],stream_names[i],str(stream_coverurls[i]),stream_ids[i],stream_names[i],stream_names[i]))
+#            else:
+#                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string %s</p>' %keyword)
 #        self.response.write('</body></html>')
-#        template_values = {
-#            'keyword': keyword,
-#            'stream_names':stream_names,
-#            'stream_coverurls':stream_coverurls_str,
-#            'stream_ids':stream_ids,
-#            'stream_names_len':len(stream_names)
-#        }
-#
-#        template = JINJA_ENVIRONMENT.get_template('search.html')
-#        self.response.write(template.render(template_values))
-    def post(self):
-        print "hahahahahahaha"
-        global data_center
-        data_center = list()
-        streams = Stream.query().fetch()
-        for stream in streams:
-          if str(stream.name) not in data_center:
-              data_center.append(str(stream.name))
-          if str(stream.tag):
-            if(stream.tag) not in data_center:
-              data_center.append(str(stream.tag))
-        self.redirect ('/search')
+        template_values = {
+            'keyword': keyword,
+            'stream_names':stream_names,
+            'stream_coverurls':stream_coverurls_str,
+            'stream_ids':stream_ids,
+            'stream_names_len':len(stream_names)
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('search.html')
+        self.response.write(template.render(template_values))
 
 class Social(webapp2.RequestHandler):
     def get(self):
@@ -960,6 +1032,50 @@ class Debug(webapp2.RequestHandler):
         self.response.write("<html><h1>%s</h1></html>" %bug)
         
 
+class DownloadHandler(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, key, filename):
+        if not blobstore.get(key):
+            self.error(404)
+        else:
+            # Prevent browsers from MIME-sniffing the content-type:
+            self.response.headers['X-Content-Type-Options'] = 'nosniff'
+            # Cache for the expiration time:
+            #self.response.headers['Cache-Control'] = 'public,max-age=%d' % EXPIRATION_TIME
+            self.response.headers['Cache-Control'] = 'public'
+            # Send the file forcing a download dialog:
+            self.send_blob(key, save_as=filename, content_type='application/octet-stream')
+
+class Google_map(webapp2.RequestHandler):
+    def get(self):
+        template_values = {}
+        template = JINJA_ENVIRONMENT.get_template('map.html')
+        self.response.write(template.render(template_values)) 
+    def post(self):
+        print "google_map_testtest"
+        stream_id = self.request.get('stream_id')
+        image_query = Imag.query(ancestor = ndb.Key(Stream,long(stream_id))).fetch()
+        result = dict()
+        result['markers']=list()
+        for image in image_query:
+            marker = dict()
+            if image.latitude:
+                #marker['latitude'] = float(image.latitude)+random.random()/2000
+                #marker['longitude'] = float(image.longitude)+random.random()/2000
+                marker['latitude'] = float(image.latitude)
+                marker['longitude'] = float(image.longitude)
+                marker['url'] = image.pic
+                image_date = image.date + timedelta(hours = -5) ##Change to local time
+                marker['year'] = image_date.year
+                marker['month'] = image_date.month - 1
+                marker['day'] = image_date.day
+                print "google map send date"
+                print image_date
+                
+                result['markers'].append(marker)
+        self.response.headers['Content-Type'] = "application/json"
+        self.response.headers['Accept'] = "text/plain"
+        self.response.write(json.dumps(result))
+
 application = webapp2.WSGIApplication([
     ('/',Login),
     ('/count',Count_job),
@@ -969,16 +1085,16 @@ application = webapp2.WSGIApplication([
     ('/viewastream',View_a_stream),
     ('/viewallstreams',View_all_stream),
     ('/img',Image_Show),
-    ('/add',Image_Add),
+    #('/add',Image_Add),
     ('/debug',Debug),
     ('/search',Search),
-    ('/search_update',Search_Update),
     ('/trending', Trending),
     ('/social', Social),
     ('/subscribe', Subscribe),
     ('/delete_my', Delete_my),
     ('/delete_subscribe',Delete_subscribe),
-
+    ('/img([^/]+)/([^/]+)', DownloadHandler),
+    ('/map', Google_map),
 ],debug = True)
 
 

@@ -11,9 +11,11 @@ from datetime import *
 # Each Imag has a Stream Parent
 class Imag(ndb.Model):
     pic = ndb.StringProperty()
-    comment = ndb.StringProperty()
+    #comment = ndb.StringProperty()
     imag_id = ndb.IntegerProperty()
     date = ndb.DateTimeProperty(auto_now_add = True)
+    latitude = ndb.StringProperty()
+    longitude = ndb.StringProperty()
 
 class Stream(ndb.Model):
     #user = ndb.UserProperty()
@@ -26,6 +28,8 @@ class Stream(ndb.Model):
     view_times = ndb.DateTimeProperty(repeated = True)
     viewers = ndb.IntegerProperty()
     last_date = ndb.DateTimeProperty()
+    last_date_local = ndb.DateTimeProperty()
+    date_local = ndb.DateTimeProperty()
 
 class Webusers(ndb.Model):#Each Webusers xx.key.id() is the user
     mail = ndb.StringProperty()
@@ -99,12 +103,16 @@ class Create_a_stream_api(webapp2.RequestHandler):
         if flag == 0:
           stream = Stream(name = stream_name, tag = stream_tag, coverurl = stream_coverurl, num_pic = 0, viewers = 0)
           stream_key = stream.put() ##Return stream_id along with the status code for the manage page and then for view_a_stream which needs a stream_id
+          stream = stream_key.get()
+          stream.date_local = stream.date + timedelta(hours = -5)
+          stream_key = stream.put() ##Return stream_id along with the status code for the manage page and then for view_a_stream which needs a stream_id
+          print "create a stream time"
+          print stream.date_local
           user = ndb.Key(Webusers,str(user_id)).get() 
           #users = Webusers.query(Webusers.mail==str(user_mail)).fetch()
           if user:
               #user = users[0]
               user.my_stream.append(str(stream_key.id()))
-              print "@#$!#$!#%!#%!$%!$%"
               user.put()
           else:
               user = Webusers(id = str(user_id))
@@ -157,13 +165,15 @@ class View_a_stream_api(webapp2.RequestHandler):
         #!!!!!!!!!!!!!!!#####
         if (not page_start) and (not page_end):
             time = datetime.now()
+            print "view a stream time"
+            print time
             if stream.view_times:
                 stream.view_times = [view_time for view_time in stream.view_times if view_time > (time + timedelta(hours = -1))] 
             stream.view_times.append(time)
             stream.viewers = stream.viewers + 1
             stream.put()
         ###########################################################
-        if (not page_start) and (not page_end):
+        if (not page_start) or (not page_end):
             page_start = 0
             if len(image_query)>3:
                 page_end = 2
@@ -191,8 +201,10 @@ class View_a_stream_api(webapp2.RequestHandler):
 
         image_urls = list()
         for i in range(int(page_start),int(page_end)+1):
-            query_params = {'blob_key':image_query[i].pic, 'stream_id':stream_id}
-            image_urls.append('/img?' + urllib.urlencode(query_params))
+            #query_params = {'blob_key':image_query[i].pic, 'stream_id':stream_id}
+            #image_urls.append('/img?' + urllib.urlencode(query_params))
+            image_urls.append(image_query[i].pic)
+            
         responses = dict()
         #print image_urls
         responses['url_list'] = image_urls
@@ -221,20 +233,31 @@ class View_a_stream_api(webapp2.RequestHandler):
 class Image_Upload_api(webapp2.RequestHandler):
     def post(self):
         responses = json.loads(self.request.body)
-        pic = responses['file']#Key of blobstore
+        pics = responses['file']#url of blobstore
         stream_id = responses['stream_id']
-        comment = responses['comment']
-        if pic:
+        location = responses['location']
+        latitude = location['latitude']
+        longitude = location['longitude']
+        #comment = responses['comment']
+        #stream = ndb.Key(Stream,long(stream_id)).get()
+        for pic in pics:
             imag = Imag(parent = ndb.Key(Stream, long(stream_id)))
             #imag.pic = images.resize(pic,100,100)
             imag.pic = str(pic)
-            imag.comment = str(comment)
+            imag.latitude = latitude
+            imag.longitude = longitude 
+            #imag.comment = str(comment)
             imag.put()
-            stream = ndb.Key(Stream,long(stream_id)).get()
-            stream.num_pic = stream.num_pic + 1
-            stream.last_date = datetime.now()
-        #print stream.last_date 
-            stream.put()
+            #stream.num_pic = stream.num_pic + 1
+        print "test number of picture in a stream begin"
+        stream = ndb.Key(Stream,long(stream_id)).get()
+        image_query = Imag.query(ancestor=ndb.Key(Stream,long(stream_id))).fetch()
+        stream.num_pic = len(image_query)
+        print stream.num_pic
+        print "test number of picture in a stream end"
+        stream.last_date = datetime.now()
+        stream.last_date_local = stream.last_date + timedelta(hours = -5)####May need to change
+        stream.put()
 
 ## View all streams: which returns a list of names of streams and their cover images
 class View_all_streams_api(webapp2.RequestHandler):
@@ -272,13 +295,6 @@ class Search_streams_api(webapp2.RequestHandler):
                 print type(stream.date)
                 if i == 5:
                     break
-            elif query_string.lower() in stream.tag.lower():
-                i = i + 1
-                responses['names'].append(stream.name)
-                responses['coverurls'].append(stream.coverurl)
-                responses['ids'].append(stream.key.id())
-                if i == 5:
-                  break
         self.response.headers['Content-Type'] = "application/json"
         self.response.headers['Accept'] = "text/plain"
         self.response.write(json.dumps(responses))
@@ -307,6 +323,8 @@ class Most_viewed_streams_api(webapp2.RequestHandler):
         responses['last_viewers'] = list()
         streams = Stream.query().fetch()
         time = datetime.now()
+        print "most viewed stream time"
+        print time
         for stream in streams:
             if stream.view_times:
                 stream.view_times = [view_time for view_time in stream.view_times if (view_time > time + timedelta(hours = -1))]

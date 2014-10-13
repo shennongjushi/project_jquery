@@ -2,7 +2,4 @@ cron:
   - description: trending job
     url: /count
     schedule: every 5 minutes
-  - description: search data center update
-    url: /search_update
-    schedule: every 1 hours
 

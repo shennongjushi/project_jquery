@@ -1,0 +1,215 @@
+<html>
+    <head>
+   <!-- <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+     <script type="text/javascript" src="js/markerclustererplus-2.0.6/markerclusterer.min.js"></script>
+     <script type="text/javascript" src="js/jquery.ui.map.js"></script>
+     <link rel="stylesheet" type="text/css" href="css/map.css">
+     <link href='http://fonts.googleapis.com/css?family=Josefin+Slab' rel='stylesheet' type='text/css' />
+     <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+     <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>-->
+
+    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.min.js"></script>
+    <script type="text/javascript" src="js/markerclustererplus-2.0.6/markerclusterer.min.js"></script>
+    <script type="text/javascript" src="js/jquery.ui.map.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/map.css">
+
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+    </head>
+
+
+
+  <body>
+    <table>
+      <tr>
+        <td width=779 colspan=8 valign=top>
+          <p
+          style="font-family:Calibri;color:#92D050;font-size:60.0pt"><b>Connex.us</b></p>
+        </td>
+      </tr>
+      <tr>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/manage"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Manage</a></p>
+        </td>
+        <td
+          width=130
+          colspan=2
+          valign=top>
+          <p><a
+            href="/create"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Create</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/viewallstreams"
+            style="font-family:Calibri;color:#D0CECE;font-size:16.0pt;text-decoration:none;">View</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/search"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Search</a></p>
+        </td>
+        <td
+          width=130
+          colspan=2
+          valign=top>
+          <p><a
+            href="/trending"
+            style="font-family:Calibri;color:#D0CECE;font-size:16.0pt;text-decoration:none;">Trending</a></p>
+        </td>
+        <td
+          width=130
+          valign=top>
+          <p><a
+            href="/social"
+            style="font-family:Calibri;color:#2E75B6;font-size:16.0pt;text-decoration:none;">Social</a></p>
+        </td>
+      </tr>
+</table>
+<!-- Google Map -->
+   <div id="map_canvas" ></div>
+   </br>
+   <p>
+     <label for="amount">Upload Date:</label>
+       <input type="text" id="amount" style="border: 0; color: #fff;  font-weight: bold; background-color:transparent;" />
+   </p>
+<!--slide range -->
+   <div id="slider-range"></div>
+
+   <script type="text/javascript">
+      //$('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).bind('init', function(evt, map) { 
+      $('#map_canvas').gmap({'zoom': 2, 'disableDefaultUI':true}).bind('init', function(evt, map) {
+        //var self = this;
+          var request_url = window.location.href;
+          console.log(request_url);
+/*-----------json---------------*/
+          $.ajax({
+                url:request_url,
+                type:"POST",
+                dataType:"json",
+                success: function(data){
+                   //console.log("hello, I did it");
+                   $.each(data.markers, function(i,m){
+                   //console.log(m.latitude)
+                   //console.log(m.longitude)
+                      //$('#map_canvas').gmap('addMarker', { 'position': new google.maps.LatLng(m.latitude, m.longitude), 'bounds':true})
+                      $('#map_canvas').gmap('addMarker', { 'position': new google.maps.LatLng(m.latitude, m.longitude)})
+                      .mouseover(function(){
+                       $('#map_canvas').gmap('openInfoWindow',{'content': '<img width="100px" height ="100px" src="'+ m.url + '">'},this);
+                      });
+                   });
+                   $('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer($('#map_canvas').gmap('get', 'map'), $('#map_canvas').gmap('get', 'markers')));
+               }
+          });
+/*----------json--------------*/
+
+   });
+  </script>
+<!--Slider range -->
+  <script>
+  $(function() {
+    var maxdate = new Date();
+    var mindate = new Date(maxdate.getFullYear()-1, maxdate.getMonth(), maxdate.getDate(), maxdate.getHours(),maxdate.getMinutes(),maxdate.getSeconds(), maxdate.getMilliseconds());
+   
+    $( "#slider-range" ).slider({
+      range: true,
+      min: mindate.getTime(),
+      max: maxdate.getTime(),
+      values: [mindate.getTime(), maxdate.getTime()],
+      slide: function( event, ui ) {
+        var max = new Date(ui.values[1]);
+        var min = new Date(ui.values[0]);
+        
+        var minyear = min.getFullYear();
+        var minmonth = min.getMonth();
+        var minday = min.getDate();
+        var maxyear = max.getFullYear();
+        var maxmonth = max.getMonth();
+        var maxday = max.getDate();
+         
+        var m_names = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+
+        $( "#amount" ).val(minday + " " + m_names[minmonth] + "," + minyear + '-----' + maxday + " " + m_names[maxmonth] + "," + maxyear);
+        console.log(minday + " " + m_names[minmonth] + "," + minyear + '-----' + maxday + " " + m_names[maxmonth] + "," + maxyear + "testtest");
+        //$('#map_canvas').gmap('get', 'MarkerClusterer').removeMarker($('#map_canvas').gmap('get','markers'), true);
+        //$('#map_canvas').gmap('clear', 'markers');
+        //$('#map_canvas').gmap('clear', 'MarkerClusterer');
+        //markerList = $('#map_canvas').gmap('get', 'markers');
+        //   for (i = 0; i < markerList.length; i++){
+        //      markerList[i].setMap(null);
+        //   }
+        $('#map_canvas').gmap('closeInfoWindow');  
+        $('#map_canvas').gmap('get','MarkerClusterer').setMap(null);
+        $('#map_canvas').gmap('clear', 'markers');
+        //var a = $('#map_canvas').gmap('clear', 'markers');
+        //console.log(a);
+         
+        var request_url = window.location.href;
+        $.ajax({
+                url:request_url,
+                type:"POST",
+                dataType:"json",
+                async: false,
+                success: function(data){
+                //console.log('success!!!');
+                   $.each(data.markers, function(i,m){
+                      get_time = m.year*10000 + m.month*100 + (m.day-1);
+                      max_time = maxyear*10000 + (maxmonth+1)*100 + maxday;
+                      min_time = minyear*10000 + (minmonth+1)*100 + minday;
+                      //console.log('m.year:' + m.year);
+                      //console.log('m.month:' + m.month);
+                      //console.log('m.day:' + m.day);
+                      console.log(get_time);
+                      console.log(max_time);
+                      console.log(min_time);
+                      if((get_time >= min_time) && (get_time <= max_time)){
+                          console.log('success!!!');
+                          $('#map_canvas').gmap('addMarker', { 'position': new google.maps.LatLng(m.latitude, m.longitude)})
+                           .mouseover(function(){
+                          $('#map_canvas').gmap('openInfoWindow',{'content': '<img width="100px" height ="100px" src="'+ m.url + '">'},this);
+                          });
+                      }
+                   });
+                  //$('#map_canvas').gmap('clear', 'MarkerClusterer');
+                  $('#map_canvas').gmap('get','MarkerClusterer').setMap(null);
+                  $('#map_canvas').gmap('set', 'MarkerClusterer', new MarkerClusterer($('#map_canvas').gmap('get', 'map'), $('#map_canvas').gmap('get', 'markers')));
+                  $('#map_canvas').gmap('refresh');
+               }
+        });
+      }
+    });
+    
+    var max = new Date($("#slider-range").slider("values",1));
+    var min = new Date($("#slider-range").slider("values",0));
+        
+    var minyear = min.getFullYear();
+    var minmonth = min.getMonth();
+    var minday = min.getDate();
+    var maxyear = max.getFullYear();
+    var maxmonth = max.getMonth();
+    var maxday = max.getDate();
+    //console.log('minyear'+ minyear) ;  
+    //console.log('minmonth'+ minmonth) ;  
+    //console.log('minday'+ minday) ;  
+    //console.log('maxyear'+ maxyear) ;  
+    //console.log('maxmonth'+ maxmonth) ;  
+    //console.log('maxday'+ maxday) ;  
+    var m_names = new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+
+    $( "#amount" ).val(minday + " " + m_names[minmonth] + "," + minyear + '-----' + maxday + " " + m_names[maxmonth] + "," + maxyear);
+
+  });
+  </script> 
+  </body>
+</html>
+
