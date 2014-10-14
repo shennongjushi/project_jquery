@@ -1,5 +1,10 @@
 <html>
   <head>
+   <link href="css/jquery-ui.css" rel="stylesheet">
+   <script src="js/jquery-1.10.2.js"></script>
+   <script src="js/jquery-ui.js"></script>
+  </head>
+<body>
     <table>
       <tr>
         <td width=779 colspan=8 valign=top>
@@ -54,19 +59,50 @@
         </td>
       </tr>
     </table>
-  </head>
+
+<!--      Autocomplete script         -->
+    <script>
+       $(function() {
+           var cache = {};
+           $( "#keyword" ).autocomplete({
+               minLength: 1,
+               source: function( request, response ) {
+                  var term = request.term;
+                  if ( term in cache ) {
+                      console.log('in cache');
+                      response( cache[ term ].slice(0,20));
+                    return;
+                  }
+                  $.getJSON( "/search_index", request, function( data, status, xhr ) {
+                      cache[ term ] = data.term;
+                      response(data.term.slice(0,20));
+                      console.log(data.term);
+                  });
+                }
+           });
+       });
+    </script>
   </br>
-  <body>
-    <form action = "/search" enctype = "multipart/form-dat" method = "get">
-      <div><input type = "text" name = "keyword" placeholder="Keyword" style="font-family:Calibri;color:black;font-size:20.0pt;height:25pt;width:200pt;"></div>
-      <div><input type = "submit" values = "Search"></div>
-    </form>
+     <form action = "/search" enctype = "multipart/form-dat" method = "get">
+        <div class="ui-widget">
+          <label for="tags">Search:</label>
+          <input type = "text" id="keyword" name= "keyword" placeholder="Keyword">
+        </div>
+        <div class="ui-widget">
+          <label for="button">
+          <button type = "submit"> Search</button></div>
+      </form>
+      <form action = "/search" method = "post">
+        <div class = "ui-widget">
+        <label for ="button">
+          <button type = "submit">Update Data Center</button></div>
+      </form>
     {% if keyword %}
     {% if stream_names %}
     <p style="font-family:Calibri;color:black;font-size:16.0pt">{{stream_names_len}} results for {{keyword}}, click on an image to view stream </p>
     {% for i in range(0,stream_names_len) %}
     <div class="c_img"><a href =
-        "/viewastream?stream_id={{stream_ids[i]}}&stream_name={{stream_names}}">
+        "/viewastream?stream_id={{stream_ids[i]}}&stream_name={{stream_names[i]}}">
         <img src="{{stream_coverurls[i]}}" width="200px" height="200px" 
         style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
       <div><a href

@@ -280,7 +280,7 @@ class Search_streams_api(webapp2.RequestHandler):
     def post(self):
         requests = json.loads(self.request.body)
         query_string = requests['keyword']
-        streams = Stream.query().fetch()
+        streams = Stream.query().order(Stream.date).fetch()
         responses = dict()
         responses['names'] = list()
         responses['coverurls'] = list()

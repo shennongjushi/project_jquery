@@ -607,7 +607,9 @@ class View_a_stream(webapp2.RequestHandler):
             )
             result['type'] = fieldStorage.type
             result['size'] = self.get_file_size(fieldStorage.file)
+            result['url'] = ''
             if self.validate(result):
+                print "legal!"
                 blob_key = str(
                     self.write_blob(fieldStorage.value, result)
                 )
@@ -670,7 +672,8 @@ class View_a_stream(webapp2.RequestHandler):
   
         urls = list()
         for result in results:
-            urls.append(result['url'])
+            if result['url']:
+               urls.append(result['url'])
         requests = {
             'file': urls,###Use the blobkey
             'stream_id': stream_id,
@@ -842,51 +845,75 @@ class Search_Update(webapp2.RequestHandler):
       if str(stream.tag):
         if(str(stream.tag)) not in data_center:
           data_center.append(str(stream.tag))
-class Search(webapp2.RequestHandler):
+
+class Search_index(webapp2.RequestHandler):
     def get(self):
         global data_center
         data_center.sort()
         print data_center
-        grey = '#D0CECE'
-        blue = '#2E75B6'
-        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
-        self.response.write("""\
-            <link href="css/jquery-ui.css" rel="stylesheet">
-            <script src="js/jquery-1.10.2.js"></script>
-            <script src="js/jquery-ui.js"></script>
-            <script>
-             $(function() {
-               var availableTags = %s;
-             $(
-             "#keyword"
-             ).autocomplete({
-             source: function(request, response) {
-               var results = $.ui.autocomplete.filter(availableTags, request.term);
+        term = self.request.get('term')
+        response = dict()
+        response['term'] = list()
+        for data in data_center:
+           if term in data:
+              response['term'].append(data)
+        self.response.write(json.dumps(response))
+        print response
 
-               response(results.slice(0, 20));
-             }
-             });
-             });
-            </script>
-             <body>
-             <br>
-              <form action = "/search" enctype = "multipart/form-dat" method = "get">
-                <div class="ui-widget">
-                <label for="tags">Search:
-                </label>
-                <input type = "text" id="keyword" name= "keyword"
-                placeholder="Keyword">
-                </div>
-                <div class="ui-widget">
-                <label for="button">
-                 <button type = "submit"> Search</button></div>
-                 </form>
-              <form action = "/search" method = "post">
-              <div class = "ui-widget">
-              <label for ="button">
-                <button type = "submit">Update Data Center</button></div>
-              </form>
-                """%data_center)
+class Search(webapp2.RequestHandler):
+    def get(self):
+        #global data_center
+        #data_center.sort()
+        #print data_center
+#        grey = '#D0CECE'
+#        blue = '#2E75B6'
+#        self.response.write(HEAD_TEMPLATE %(blue,blue,blue,grey,blue,blue))
+#        self.response.write("""\
+#            <link href="css/jquery-ui.css" rel="stylesheet">
+#            <script src="js/jquery-1.10.2.js"></script>
+#            <script src="js/jquery-ui.js"></script>
+#            <script>
+#             $(function() {
+#             var cache = {};
+#             $( "#keyword" ).autocomplete({
+#              minLength: 1,
+#              source: function( request, response ) {
+#                var term = request.term;
+#                if ( term in cache ) {
+#                    console.log('in cache');
+#                    response( cache[ term ].slice(0,20));
+#                  return;
+#                 }
+#               console.log('shennong'); 
+#              $.getJSON( "/search_index", request, function( data, status, xhr ) {
+#                    console.log('testing');
+#                    cache[ term ] = data.term;
+#                    response(data.term.slice(0,20));
+#                    console.log(data.term);
+#                 });
+#              }
+#            });
+#          });
+#            </script>
+#             <body>
+#             <br>
+#              <form action = "/search" enctype = "multipart/form-dat" method = "get">
+#                <div class="ui-widget">
+#                <label for="tags">Search:
+#                </label>
+#                <input type = "text" id="keyword" name= "keyword"
+#                placeholder="Keyword">
+#                </div>
+#                <div class="ui-widget">
+#                <label for="button">
+#                 <button type = "submit"> Search</button></div>
+#                 </form>
+#              <form action = "/search" method = "post">
+#              <div class = "ui-widget">
+#              <label for ="button">
+#                <button type = "submit">Update Data Center</button></div>
+#              </form>
+#                """)
 #        self.response.write("""\
 #             </br>
 #             <body>
@@ -911,39 +938,38 @@ class Search(webapp2.RequestHandler):
             for url in stream_coverurls:
               stream_coverurls_str.append(str(url))
             stream_ids = data['ids']
-            if stream_names:
-                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">%d results for %s, click on an image to view stream </p>' %(len(stream_names),keyword))
-                for i in range(0,len(stream_names)):
-                    self.response.write("""\
-                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
-                    <img src="%s" width="200px" height="200px" 
-                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
-                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
-                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
-                    </a></div></div>
-                    <style>
-                    .c_img{position:relative;}
-                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
-                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
-                    </style>
-                    </br>
-                    """
-                    %(stream_ids[i],stream_names[i],str(stream_coverurls[i]),stream_ids[i],stream_names[i],stream_names[i]))
-            else:
-                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string %s</p>' %keyword)
+#            if stream_names:
+#                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">%d results for %s, click on an image to view stream </p>' %(len(stream_names),keyword))
+#                for i in range(0,len(stream_names)):
+#                    self.response.write("""\
+#                    <div class="c_img"><a href = "/viewastream?stream_id=%s&stream_name=%s">
+#                    <img src="%s" width="200px" height="200px" 
+#                    style=" border:3;padding:8;border-style:dotted;color=#990000"></a>
+#                    <div><a href ="/viewastream?stream_id=%s&stream_name=%s" class="c_words" 
+#                    style="font-family:Calibri;color:black;font-size:20.0pt;text-decoration:none">%s
+#                    </a></div></div>
+#                    <style>
+#                    .c_img{position:relative;}
+#                    .c_words{position:absolute;width:200px;height:30px;top:95px;left:11px;
+#                    text-align:center;filter:alpha(opacity=60);opacity:0.6;background:white}
+#                    </style>
+#                    </br>
+#                    """
+#                    %(stream_ids[i],stream_names[i],str(stream_coverurls[i]),stream_ids[i],stream_names[i],stream_names[i]))
+#            else:
+#                self.response.write('<p style="font-family:Calibri;color:black;font-size:16.0pt">No Result matchs string %s</p>' %keyword)
 #        self.response.write('</body></html>')
-#        template_values = {
-#            'keyword': keyword,
-#            'stream_names':stream_names,
-#            'stream_coverurls':stream_coverurls_str,
-#            'stream_ids':stream_ids,
-#            'stream_names_len':len(stream_names)
-#        }
-#
-#        template = JINJA_ENVIRONMENT.get_template('search.html')
-#        self.response.write(template.render(template_values))
+        template_values = {
+            'keyword': keyword,
+            'stream_names':stream_names,
+            'stream_coverurls':stream_coverurls_str,
+            'stream_ids':stream_ids,
+            'stream_names_len':len(stream_names)
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('search.html')
+        self.response.write(template.render(template_values))
     def post(self):
-        print "hahahahahahaha"
         global data_center
         data_center = list()
         streams = Stream.query().fetch()
@@ -1154,6 +1180,7 @@ application = webapp2.WSGIApplication([
     ('/debug',Debug),
     ('/search',Search),
     ('/search_update',Search_Update),
+    ('/search_index', Search_index),
     ('/trending', Trending),
     ('/social', Social),
     ('/subscribe', Subscribe),
